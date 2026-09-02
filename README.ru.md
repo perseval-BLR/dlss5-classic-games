@@ -71,3 +71,7 @@ python scripts\install_dxhr.py
 - [dlss5-bridge](https://github.com/NIGos/dlss5-bridge) — DLSS 5 в DX11/Vulkan-играх с нативным DLSS; наш фикс глубины R32_SFLOAT для RTX Remix влит в апстрим (PR #21)
 - [DLSS5-Video-Converter](https://github.com/perseval-BLR/DLSS5-Video-Converter) — DLSS 5 NR на видео
 - [NR-Media-UI](https://github.com/perseval-BLR/NR-Media-UI) — DLSS 5 NR на скриншотах
+
+## Автор
+
+**Perseval** — https://youtube.com/@perseval_BLR
