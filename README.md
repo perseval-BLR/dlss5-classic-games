@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering in 8 classic games
+# DLSS 5 Neural Rendering in 9 classic games
 
-Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in eight classic games, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in nine classic games, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Game | Engine / API | Path | Status |
 |---|---|---|---|
@@ -12,8 +12,9 @@ Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in eight 
 | Serious Sam: The First Encounter | Serious Engine 1, 32-bit OpenGL | ReShade x86 as opengl32.dll + Feeder addon32 + host64 + VORT | ✅ works |
 | Far Cry 2004 | CryEngine 1, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 | ✅ works |
 | Star Wars Jedi Knight: Jedi Academy | id Tech 3, 32-bit OpenGL | ReShade x86 as opengl32.dll + Feeder addon32 + host64 + VORT | ✅ works |
+| The Chronicles of Riddick: Assault on Dark Athena | Starbreeze/Ogier, 32-bit OpenGL | ReShade x86 as opengl32.dll + Feeder addon32 + host64 + VORT (4K via `VID_MODE=desktop` — engine can't apply 3840×2160 fullscreen) | ✅ works |
 
-All eight run DLSS 5 Neural Rendering at native 4K (DLAA contract, no upscaling — the Feeder sees the final frame). Verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR frame counter growing.
+All nine run DLSS 5 Neural Rendering at native 4K (DLAA contract, no upscaling — the Feeder sees the final frame). Verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR frame counter growing.
 
 ## What you need
 
@@ -23,7 +24,7 @@ All eight run DLSS 5 Neural Rendering at native 4K (DLAA contract, no upscaling 
 - nvngx_dlssnr.dll 310.8.0 + nvngx_dlss.dll / nvngx_dlssg.dll / nvngx_dlssd.dll (310.8.0 / 310.7.129)
 - ReShade 6.8 addon build (x86 dxgi for 32-bit games, x64 dxgi for host64)
 - DXVK 3.0.2 x86 (d3d9.dll) for Fallout 3 / Black Mesa / Far Cry
-- VORT shaders (vortigern11/vort_Shaders) for the OpenGL paths (OpenMW, ioq3, Serious Sam, Jedi Academy)
+- VORT shaders (vortigern11/vort_Shaders) for the OpenGL paths (OpenMW, ioq3, Serious Sam, Jedi Academy, Riddick)
 - ioq3 binaries (ioquake3.org) for Quake III Arena
 
 ## Install
@@ -50,6 +51,7 @@ Per-game variables:
 - `install_serioussam.py` — GAME_DIR (Serious Sam folder, usually `<game>\Bin`), OPENGL_DONOR (OpenMW), X86_DONOR (working 32-bit install, e.g. Deus Ex: HR)
 - `install_farcry.py` — GAME_DIR (Far Cry folder, usually `<game>\Bin32`), DXVK_DONOR (working D3D9 install, e.g. Fallout 3)
 - `install_quake3_ja.py` — GAME_DIR_Q3, GAME_DIR_JA (GameData), X86_DONOR (working 32-bit OpenGL install, e.g. Serious Sam)
+- `install_riddick.py` — GAME_DIR (Riddick `System\Win32_x86` folder), X86_DONOR (working 32-bit OpenGL install, e.g. Serious Sam)
 
 ## The gotchas (why this took a while)
 
@@ -65,6 +67,8 @@ Per-game variables:
 10. **Quake III (GOG): the game loads opengl32.dll from system32, ignoring the local one.** ReShade never loads (verified via process modules). Fix: use ioq3 — it loads opengl32.dll from its own folder and the whole stack works out of the box.
 11. **Serious Sam: TFE has no 4K in the menu.** The engine enumerates modes via EnumDisplaySettings, so 3840×2160 goes straight into `Scripts\PersistentSymbols.ini` (sam_iScreenSizeI/J). The in-game "Widescreen" option is a letterbox, NOT stretching — keep sam_bWideScreen=0. Steamify patch (archive.org) fixes the Hor+ FOV. DPI: the exe is not DPI-aware — set HIGHDPIAWARE via AppCompatFlags or the image shifts.
 12. **Serious Sam: ReShade dies on video mode change** (`game device destroyed; shutting down` — GL context recreation kills the stack). Don't change resolution in the menu; set it in the config before launch.
+13. **Riddick: AODA — 4K only via `VID_MODE=desktop` in `%LOCALAPPDATA%\Atari\The Chronicles of Riddick - Assault on Dark Athena\Environment.cfg`.** Starting with `VID_MODE=3840 2160 32 144` = black ~1600×1024 window + silent exit (the engine can't find the exact mode and falls back). The in-game menu applies 4K but the engine silently loads the closest supported mode — the picture stays non-4K. `VID_DWIDTH/VID_DHEIGHT=3840/2160`; windowed 4K renders 3840×2071 (title bar). Also: startup hang on modern NVIDIA is the GLSL bias syntax in `System\GL\HLInclude_GLSL.xrg` (see OLD-GAMES-GOTCHAS.md §16).
+14. **Riddick/32-bit schemes: `NRStyle=2` in host64/ReShade.ini → black screen when the feed engages.** The 32-bit host64 path needs `NRStyle=0` (the §9 tuning block with NRStyle=2 is for 64-bit schemes).
 
 ## Verify
 

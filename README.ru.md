@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering в 8 классических играх
+# DLSS 5 Neural Rendering в 9 классических играх
 
-Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в восьми классических играх, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в девяти классических играх, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Игра | Движок / API | Схема | Статус |
 |---|---|---|---|
@@ -12,8 +12,9 @@
 | Serious Sam: The First Encounter | Serious Engine 1, 32-bit OpenGL | ReShade x86 как opengl32.dll + Feeder addon32 + host64 + VORT | ✅ работает |
 | Far Cry 2004 | CryEngine 1, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 | ✅ работает |
 | Star Wars Jedi Knight: Jedi Academy | id Tech 3, 32-bit OpenGL | ReShade x86 как opengl32.dll + Feeder addon32 + host64 + VORT | ✅ работает |
+| The Chronicles of Riddick: Assault on Dark Athena | Starbreeze/Ogier, 32-bit OpenGL | ReShade x86 как opengl32.dll + Feeder addon32 + host64 + VORT (4K через `VID_MODE=desktop` — движок не умеет 3840×2160 fullscreen) | ✅ работает |
 
-Все восемь запускают DLSS 5 Neural Rendering в нативном 4K (DLAA-контракт, без апскейла — Feeder видит финальный кадр). Подтверждено: `feature 18 created`, `inline feature 18 evaluation succeeded`, счётчик NR-кадров растёт.
+Все девять запускают DLSS 5 Neural Rendering в нативном 4K (DLAA-контракт, без апскейла — Feeder видит финальный кадр). Подтверждено: `feature 18 created`, `inline feature 18 evaluation succeeded`, счётчик NR-кадров растёт.
 
 ## Что нужно
 
@@ -23,7 +24,7 @@
 - nvngx_dlssnr.dll 310.8.0 + nvngx_dlss.dll / nvngx_dlssg.dll / nvngx_dlssd.dll (310.8.0 / 310.7.129)
 - ReShade 6.8 addon-сборка (x86 dxgi для 32-bit игр, x64 dxgi для host64)
 - DXVK 3.0.2 x86 (d3d9.dll) для Fallout 3 / Black Mesa / Far Cry
-- VORT-шейдеры (vortigern11/vort_Shaders) для OpenGL-путей (OpenMW, ioq3, Serious Sam, Jedi Academy)
+- VORT-шейдеры (vortigern11/vort_Shaders) для OpenGL-путей (OpenMW, ioq3, Serious Sam, Jedi Academy, Riddick)
 - бинарники ioq3 (ioquake3.org) для Quake III Arena
 
 ## Установка
@@ -50,6 +51,7 @@ python scripts\install_dxhr.py
 - `install_serioussam.py` — GAME_DIR (папка Serious Sam, обычно `<игра>\Bin`), OPENGL_DONOR (OpenMW), X86_DONOR (рабочая 32-bit установка, напр. Deus Ex: HR)
 - `install_farcry.py` — GAME_DIR (папка Far Cry, обычно `<игра>\Bin32`), DXVK_DONOR (рабочая D3D9-установка, напр. Fallout 3)
 - `install_quake3_ja.py` — GAME_DIR_Q3, GAME_DIR_JA (GameData), X86_DONOR (рабочая 32-bit OpenGL-установка, напр. Serious Sam)
+- `install_riddick.py` — GAME_DIR (папка Riddick `System\Win32_x86`), X86_DONOR (рабочая 32-bit OpenGL-установка, напр. Serious Sam)
 
 ## Грабли (почему это заняло время)
 
@@ -65,6 +67,8 @@ python scripts\install_dxhr.py
 10. **Quake III (GOG): игра грузит opengl32.dll из system32, игнорируя локальный.** ReShade не загружается вообще (подтверждено модулями процесса). Фикс: ioq3 — он грузит opengl32.dll из своей папки, и весь стек работает из коробки.
 11. **Serious Sam: TFE — в меню нет 4K.** Движок перечисляет режимы через EnumDisplaySettings, поэтому 3840×2160 пишется прямо в `Scripts\PersistentSymbols.ini` (sam_iScreenSizeI/J). Внутриигровая опция «Widescreen» — это letterbox, НЕ растяжение — держать sam_bWideScreen=0. Steamify-патч (archive.org) чинит Hor+ FOV. DPI: exe не DPI-aware — ставить HIGHDPIAWARE через AppCompatFlags, иначе картинка смещается.
 12. **Serious Sam: ReShade умирает при смене видеорежима** (`game device destroyed; shutting down` — пересоздание GL-контекста убивает стек). Не менять разрешение в меню — выставлять в конфиге до запуска.
+13. **Riddick: AODA — 4K только через `VID_MODE=desktop` в `%LOCALAPPDATA%\Atari\The Chronicles of Riddick - Assault on Dark Athena\Environment.cfg`.** Старт с `VID_MODE=3840 2160 32 144` = чёрное окно ~1600×1024 + тихий вылет (движок не находит точный режим и падает в фолбэк). Меню применяет 4K, но движок молча грузит ближайший поддерживаемый режим — картинка остаётся не-4K. `VID_DWIDTH/VID_DHEIGHT=3840/2160`; windowed 4K рендерит 3840×2071 (заголовок окна). Также: стартовое зависание на современных NVIDIA — GLSL bias-синтаксис в `System\GL\HLInclude_GLSL.xrg` (см. OLD-GAMES-GOTCHAS.md §16).
+14. **Riddick/32-bit схемы: `NRStyle=2` в host64/ReShade.ini → чёрный экран при включении фида.** Для 32-bit host64-пути нужен `NRStyle=0` (блок тюнинга §9 с NRStyle=2 — для 64-bit схем).
 
 ## Проверка
 
