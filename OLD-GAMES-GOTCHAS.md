@@ -75,7 +75,7 @@
 - **Локальный `vulkan-1.dll` в корне НЕ помог** (DXVK всё равно грузил два модуля: локальный + системный, адреса 0x61bc1760/0x5fed1760) — решающим был именно LoadFromDllMain-фикс.
 - **Симптомы при работе**: `vkCreateDevice #1: app asked for 46 extension(s), added 5` + `shared set ready (Vulkan): 3840x2160` + `frame N delivered`; host64: `feature ready: 3840x2160 DLAA` + `frame N evaluated`; host64 сам открывает оверлей (key 36).
 - FOSE: в сборке только `fose_1_7.dll`/`fose_1_7ng.dll`, **нет fose_loader.exe** — FOSE-моды не подхватятся, игра запускается.
-- **ПОДТВЕРЖДЕНО РАБОТОЙ (02.09)**: NR оценивает кадры, счётчик растёт, оверлей host64 открывается сам. Сейвы: `C:\Users\User\Documents\My Games\Fallout3\Saves\` (формат `.fos`, родной; lonebullet Chordian: Save 2 Vault 101, 11 Big Town, 12 Rivet City, 34 Test Labs, 60 Megaton — города с НПС для теста NR). Сборка с модами — ванильные сейвы могут не загрузиться; запасной путь: `coc Megaton` + консоль.
+- **ПОДТВЕРЖДЕНО РАБОТОЙ (02.09)**: NR оценивает кадры, счётчик растёт, оверлей host64 открывается сам. Сейвы: `%USERPROFILE%\Documents\My Games\Fallout3\Saves\` (формат `.fos`, родной; lonebullet Chordian: Save 2 Vault 101, 11 Big Town, 12 Rivet City, 34 Test Labs, 60 Megaton — города с НПС для теста NR). Сборка с модами — ванильные сейвы могут не загрузиться; запасной путь: `coc Megaton` + консоль.
 
 ## 13. Deus Ex: Human Revolution — 32-bit нативный D3D11, БЕЗ обёрток (работает, 02.09)
 - **Daedalus Engine, 32-bit, нативный D3D11**: `dxhr.exe` НЕ импортирует d3d статически, но **динамически грузит `dxgi.dll` + `d3d11.dll`** (строка `CreateDXGIFactory` в exe) → ReShade-dxgi (x86) подхватывается при создании D3D11-устройства. **Обёртки (dgVoodoo/DXVK) НЕ нужны** — в отличие от F.E.A.R/FO3.
@@ -141,7 +141,25 @@
 - **v0.13.1-beta.1 НЕ ставить** (регрессия CreateFeature 0xC0000005, зависание) — только v0.11.0-beta.2 (md5 addon64 `3140914fbb0f`).
 - **Проверка**: feature 18 + evaluation succeeded (ReShade.log в корне, не host64).
 
-## 22. Half-Life 2 (Steam) — 32-bit D3D9 → dgVoodoo2 (УСТАНОВЛЕН, NR НЕ ПОДТВЕРЖДЁН, 04.09)
-- **Схема**: `D3D9.dll` = dgVoodoo2 (D3D9→D3D11) + `dxgi.dll` = ReShade x86 + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite. LoadFromDllMain=addon32 (локальный dxgi, не слой).
-- **⚠ НЕ ПОДТВЕРЖДЁН**: последняя сессия — `dlss5-feed.cfg` `mode=1` (transport-only!) + `mv_scale_x/y=0.000` → host64-лог: `transport-only mode: Color will be copied to Output, no evaluate`, feature 18 = 0. **Фикс**: `mode=2` + `mv_scale=1.000`, перепроверить host64\dlss5-feed-host.log.
-- **Питфолл**: `mode=1` — транспортный тест (копирует левую половину кадра, БЕЗ NGX) — выглядит как «работает», но NR не идёт. Всегда проверять host64-лог на `transport-only`.
+## 22. Half-Life 2 (Steam) — 32-bit D3D11, БЕЗ обёрток (работает, 04.09)
+- **Схема**: `dxgi.dll` = ReShade x86 + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite (`MV_PROVIDER=3`). LoadFromDllMain=addon32 (локальный dxgi, не слой).
+- **Source 2013 грузит D3D11 динамически** (ReShade.log: `Redirecting CreateDXGIFactory1`, `Installing delayed hooks for d3d11.dll (Just loaded via LoadLibrary)`) — dgVoodoo/DXVK НЕ нужны, в отличие от HL2-классики.
+- **Проверка**: `shared set ready: 3840x2160 (100%)` + `frame N delivered` (dlss5-feed.log), `frame N evaluated` (host64 log). Подтверждено 04.09: frame 14400 evaluated.
+- **Питфолл**: `mode=1` — транспортный тест (копирует кадр БЕЗ NGX) — выглядит как «работает», но NR не идёт. Всегда проверять host64-лог на `transport-only` и `mode=2` в cfg.
+
+## 23. Серия NFS (Underground / Underground 2 / Most Wanted 2005) — 32-bit D3D9 → DXVK (работает, 04.09)
+- **Схема** = Fallout 3-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite (`MV_PROVIDER=3`). ReShade.ini БЕЗ LoadFromDllMain (слой-путь).
+- **Все три — 32-bit D3D9** (`Direct3DCreate9` в exe, динамическая загрузка). UG/UG2 имеют строки d3d8.dll + d3d9.dll, MW — только d3d9.dll.
+- **Проверка**: `shared set ready (Vulkan): 3840x2160` + `feature ready: 3840x2160 DLAA` + `frame N evaluated` (host64 log, DLSS GPU ~16.3 ms/frame). Подтверждено 04.09: UG frame 19800, UG2 frame 32400, MW frame 18000.
+- **Сейвы — в неожиданных местах**: UG → `C:\ProgramData\NFS Underground` (файлы профиля `<имя>.ugd` + `<имя>.cfg/.opt`); UG2 → `%LOCALAPPDATA%\NFS Underground 2` (слоты — ПАПКИ `<имя>\<имя>`, `NAME DVD 1\NAME DVD 1`); MW → `Documents\NFS Most Wanted\<имя>\`. Игра при первом запуске создаёт свой профиль (имя из ввода) — переименовать скачанные сейвы под него.
+- **NFS UG: разрешение — индекс режима** (`RES: N` в `<профиль>.cfg` = индекс EnumDisplaySettings: 0 = 640×480@59, 789 = 3840×2160@60). exe уже пропатчен под 4K (uniws: `mov eax,3840; mov esi,2160` — сигнатура 640×480 отсутствует), но игра всё равно стартует в 640×480 — разрешение выбирать в меню игры (Options → Display).
+- **NFS MW: widescreen-фикс** — `dinput8.dll` (обёртки D3D8/D3D9/DInput, стиль ThirteenAG) + `scripts\NFSMW2005_widescreen_fix.asi` + `scripts\nfsmw_res.ini` (ResX/ResY = 3840/2160). UG/UG2 — ThirteenAG WidescreenFixesPack (`dinput8.dll` + `scripts\*.asi`), 4K через меню игры.
+- **uniws.exe** в UG/UG2 — Universal Widescreen Patcher (GUI, патчит exe по сигнатурам из patches.ini); exe уже пропатчены.
+
+## 24. DOOM 3 BFG Edition — 32-bit OpenGL (работает, 04.09)
+- **Схема** = Serious Sam-паттерн: `opengl32.dll` = ReShade x86 + `dlss5-feed.addon32` + `host64\` (renodx **4.60** + nvngx) + VORT (`MV_PROVIDER=2`), LoadFromDllMain=addon32.
+- **Проверка**: `shared set ready (OpenGL): 3840x2160` + `frame N evaluated` (host64 log, frame 30600). Подтверждено 04.09.
+
+## 25. Mass Effect Legendary Edition (ME1/ME2/ME3) — 64-bit D3D11, БЕЗ host64 (работает, 02.09)
+- **Схема**: `dxgi.dll` = ReShade x64 + `dlss5-feed.addon64` + `renodx-dlss5.addon64` 4.70 + Lumenite (`MV_PROVIDER=3`). **host64 НЕ нужен** — 64-bit путь (addon64 сам создаёт D3D12-устройство).
+- **Проверка**: `frame N delivered (3840x2160)` + MV probe 100% non-zero (dlss5-feed.log). Подтверждено 02.09: frame 40200.
