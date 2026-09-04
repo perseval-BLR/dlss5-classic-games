@@ -124,3 +124,24 @@
 - **`NRStyle=2` в host64/ReShade.ini → чёрный экран при включении фида** (32-bit схемы): ставить `NRStyle=0` (блок тюнинга с NRStyle=2 — для 64-bit схем).
 - **Проверка**: `dlss5-feed.log` — `shared set ready (OpenGL): 3840x2071` + `frame N delivered`; `host64\dlss5-feed-host.log` — `feature ready: 3840x2071 DLAA` + `frame N evaluated`; `host64\ReShade.log` — `feature 18 created via the signed snippet` + `inline feature 18 evaluation succeeded`. Безвредные артефакты: `Failed to find NVSDK_NGX_D3D12_EvaluateFeature_C` (evaluation идёт через fallback) + WARN про reshade-shaders в host64 (эффекты не нужны — только аддон).
 - Свойства exe: `HIGHDPIAWARE` в AppCompatFlags стоит (и без него DPI-скейлинг ломает разрешения — Steam-тред про 4K ссылается на Override High DPI). Железо не проверяет — это не MP2-гейт.
+
+## 19. BloodRayne 2 Terminal Cut (GOG, 2004→2026) — 32-bit D3D8→D3D9 бандл-мост → DXVK (работает, 04.09)
+- **Схема** = Fallout 3-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 **4.70** + nvngx) + Lumenite (`MV_PROVIDER=3`). ReShade.ini БЕЗ LoadFromDllMain (слой-путь).
+- **Бандл-обёртка**: кастомная `d3d8.dll` (279 КБ) в корне импортирует `d3d9.dll` — Terminal Cut конвертирует D3D8→D3D9 нативно, поэтому перехват идёт через d3d9 от обёртки. d3d8.dll НЕ заменять.
+- **Проверка**: `feature 18 created via the signed snippet` + `inline feature 18 evaluation succeeded` (host64/ReShade.log), `frame N evaluated` (host64 log), 16k+ кадров. Подтверждено пользователем 04.09 («бладрейн все хорошо»).
+
+## 20. Dark Messiah: Might and Magic (2006, Source, RUNE) — 32-bit D3D9 → DXVK (работает, 04.09)
+- **Схема** = Fallout 3-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 **в корень И в bin/** (Source грузит GameBin первым) + слой + addon32 + host64 (renodx 4.70) + Lumenite. БЕЗ LoadFromDllMain.
+- **Запуск**: `mm.exe` — лаунчер, обязательные args `-novid +map_background +exec dm.cfg`.
+- **Проверка**: feature 18 + 54k оценок (host64 log), 4K 3840×2160.
+
+## 21. DOOM 2016 (GOG) — 64-bit Vulkan, БЕЗ host64 (работает, 04.09)
+- **Схема**: `DOOMx64vk.exe` (Vulkan) + глобальный слой + `dlss5-feed.addon64` + `renodx-dlss5.addon64` 4.70 + Lumenite (`MV_PROVIDER=3`). **host64 НЕ нужен** — addon64 сам создаёт D3D12-устройство (64-bit путь).
+- **LoadFromDllMain=renodx-dlss5.addon64** работает (слой-путь, но аддон 64-bit регистрируется — в отличие от addon32 через слой).
+- **v0.13.1-beta.1 НЕ ставить** (регрессия CreateFeature 0xC0000005, зависание) — только v0.11.0-beta.2 (md5 addon64 `3140914fbb0f`).
+- **Проверка**: feature 18 + evaluation succeeded (ReShade.log в корне, не host64).
+
+## 22. Half-Life 2 (Steam) — 32-bit D3D9 → dgVoodoo2 (УСТАНОВЛЕН, NR НЕ ПОДТВЕРЖДЁН, 04.09)
+- **Схема**: `D3D9.dll` = dgVoodoo2 (D3D9→D3D11) + `dxgi.dll` = ReShade x86 + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite. LoadFromDllMain=addon32 (локальный dxgi, не слой).
+- **⚠ НЕ ПОДТВЕРЖДЁН**: последняя сессия — `dlss5-feed.cfg` `mode=1` (transport-only!) + `mv_scale_x/y=0.000` → host64-лог: `transport-only mode: Color will be copied to Output, no evaluate`, feature 18 = 0. **Фикс**: `mode=2` + `mv_scale=1.000`, перепроверить host64\dlss5-feed-host.log.
+- **Питфолл**: `mode=1` — транспортный тест (копирует левую половину кадра, БЕЗ NGX) — выглядит как «работает», но NR не идёт. Всегда проверять host64-лог на `transport-only`.

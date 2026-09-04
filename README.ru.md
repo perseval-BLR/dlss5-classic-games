@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering в 9 классических играх
+# DLSS 5 Neural Rendering в 13 классических играх
 
-Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в девяти классических играх, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в тринадцати классических играх, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Игра | Движок / API | Схема | Статус |
 |---|---|---|---|
@@ -13,8 +13,12 @@
 | Far Cry 2004 | CryEngine 1, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 | ✅ работает |
 | Star Wars Jedi Knight: Jedi Academy | id Tech 3, 32-bit OpenGL | ReShade x86 как opengl32.dll + Feeder addon32 + host64 + VORT | ✅ работает |
 | The Chronicles of Riddick: Assault on Dark Athena | Starbreeze/Ogier, 32-bit OpenGL | ReShade x86 как opengl32.dll + Feeder addon32 + host64 + VORT (4K через `VID_MODE=desktop` — движок не умеет 3840×2160 fullscreen) | ✅ работает |
+| BloodRayne 2 Terminal Cut | Terminal Cut, 32-bit D3D8→D3D9 (бандл-мост) | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| Dark Messiah: Might and Magic | Source Engine, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| DOOM 2016 | id Tech 6, 64-bit Vulkan | глобальный Vulkan-слой ReShade + Feeder addon64 + Lumenite (без host64 — 64-bit путь) | ✅ работает |
+| Half-Life 2 | Source Engine, 32-bit D3D9 | dgVoodoo2 (D3D9→D3D11) + ReShade x86 dxgi + Feeder addon32 + host64 + Lumenite | ⚠️ установлен, NR не подтверждён (cfg был mode=1) |
 
-Все девять запускают DLSS 5 Neural Rendering в нативном 4K (DLAA-контракт, без апскейла — Feeder видит финальный кадр). Подтверждено: `feature 18 created`, `inline feature 18 evaluation succeeded`, счётчик NR-кадров растёт.
+Двенадцать из тринадцати подтверждены: `feature 18 created`, `inline feature 18 evaluation succeeded`, счётчик NR-кадров растёт. HL2 установлен, но последняя сессия шла в transport-only (`mode=1` — без NGX); поставить `mode=2` в dlss5-feed.cfg и перепроверить.
 
 ## Что нужно
 
@@ -23,7 +27,8 @@
 - [renodx-dlss5](https://github.com/RankFTW/rhi-repo) 4.70 (для OpenGL-пути — 4.60: fenced workset pool 4.70 не ресайклится на OpenGL)
 - nvngx_dlssnr.dll 310.8.0 + nvngx_dlss.dll / nvngx_dlssg.dll / nvngx_dlssd.dll (310.8.0 / 310.7.129)
 - ReShade 6.8 addon-сборка (x86 dxgi для 32-bit игр, x64 dxgi для host64)
-- DXVK 3.0.2 x86 (d3d9.dll) для Fallout 3 / Black Mesa / Far Cry
+- DXVK 3.0.2 x86 (d3d9.dll) для Fallout 3 / Black Mesa / Far Cry / BloodRayne 2 / Dark Messiah
+- dgVoodoo2 (D3D9.dll) для Half-Life 2 (путь D3D9→D3D11)
 - VORT-шейдеры (vortigern11/vort_Shaders) для OpenGL-путей (OpenMW, ioq3, Serious Sam, Jedi Academy, Riddick)
 - бинарники ioq3 (ioquake3.org) для Quake III Arena
 
@@ -52,6 +57,10 @@ python scripts\install_dxhr.py
 - `install_farcry.py` — GAME_DIR (папка Far Cry, обычно `<игра>\Bin32`), DXVK_DONOR (рабочая D3D9-установка, напр. Fallout 3)
 - `install_quake3_ja.py` — GAME_DIR_Q3, GAME_DIR_JA (GameData), X86_DONOR (рабочая 32-bit OpenGL-установка, напр. Serious Sam)
 - `install_riddick.py` — GAME_DIR (папка Riddick `System\Win32_x86`), X86_DONOR (рабочая 32-bit OpenGL-установка, напр. Serious Sam)
+- `install_bloodrayne2.py` — GAME_DIR, FEEDER_DIR, RENODX_ADDON, RESHADE_X64_DXGI, NVNGX_DIR, DXVK_D3D9
+- `install_darkmessiah.py` — GAME_DIR, FEEDER_DIR, RENODX_ADDON, RESHADE_X64_DXGI, NVNGX_DIR, DXVK_D3D9
+- `install_doom2016.py` — GAME_DIR, FEEDER_DIR, RENODX_ADDON, NVNGX_DIR (64-bit путь, без host64)
+- `install_hl2.py` — GAME_DIR, FEEDER_DIR, RENODX_ADDON, RESHADE_X86_DXGI, RESHADE_X64_DXGI, NVNGX_DIR, DGVOODOO_D3D9
 
 ## Грабли (почему это заняло время)
 
@@ -69,6 +78,9 @@ python scripts\install_dxhr.py
 12. **Serious Sam: ReShade умирает при смене видеорежима** (`game device destroyed; shutting down` — пересоздание GL-контекста убивает стек). Не менять разрешение в меню — выставлять в конфиге до запуска.
 13. **Riddick: AODA — 4K только через `VID_MODE=desktop` в `%LOCALAPPDATA%\Atari\The Chronicles of Riddick - Assault on Dark Athena\Environment.cfg`.** Старт с `VID_MODE=3840 2160 32 144` = чёрное окно ~1600×1024 + тихий вылет (движок не находит точный режим и падает в фолбэк). Меню применяет 4K, но движок молча грузит ближайший поддерживаемый режим — картинка остаётся не-4K. `VID_DWIDTH/VID_DHEIGHT=3840/2160`; windowed 4K рендерит 3840×2071 (заголовок окна). Также: стартовое зависание на современных NVIDIA — GLSL bias-синтаксис в `System\GL\HLInclude_GLSL.xrg` (см. OLD-GAMES-GOTCHAS.md §16).
 14. **Riddick/32-bit схемы: `NRStyle=2` в host64/ReShade.ini → чёрный экран при включении фида.** Для 32-bit host64-пути нужен `NRStyle=0` (блок тюнинга §9 с NRStyle=2 — для 64-bit схем).
+15. **HL2: `mode=1` в dlss5-feed.cfg = transport-only, без NGX.** В host64-логе `transport-only mode: Color will be copied to Output, no evaluate`, `feature 18` не появляется. Фикс: `mode=2` + `mv_scale_x/y=1.000` (было 0.000). Проверять в host64\dlss5-feed-host.log.
+16. **BloodRayne 2: бандл-`d3d8.dll` (279 КБ) — это мост D3D8→D3D9** — он импортирует d3d9.dll, поэтому наш DXVK `D3D9.dll` подхватывается без трогания d3d8. d3d8.dll не заменять.
+17. **DOOM 2016 (64-bit Vulkan): host64 не нужен** — addon64 сам создаёт D3D12-устройство. `LoadFromDllMain=renodx-dlss5.addon64` работает (путь глобального слоя). Держать Feeder v0.11.0-beta.2 — v0.13.1-beta.1 регрессирует (CreateFeature 0xC0000005).
 
 ## Проверка
 
