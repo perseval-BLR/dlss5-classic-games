@@ -82,3 +82,33 @@
 - **Схема**: `dxgi.dll` (ReShade x86) + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 4.70, NRStyle=0) + Lumenite (`DLSS5_MV_PROVIDER=3`, Kernel ВЫШЕ Feed). `LoadFromDllMain=dlss5-feed.addon32` РАБОТАЕТ (локальный dxgi, не слой — FO3-грабли не применимы).
 - Путь: папка игры (Steam-репак, steam_appid 28050). Ярлык «Deus Ex Human Revolution - DLSS 5» → dxhr.exe.
 - **Диагностика API**: если exe не импортирует d3d — искать строки `dxgi.dll`/`d3d11.dll`/`CreateDXGIFactory` в бинарнике (динамическая загрузка = ReShade-dxgi подхватится).
+
+## 14. Quake III Arena — GOG грузит system32 opengl32, нужен ioq3 (работает, 03.09)
+- **ГЛАВНАЯ ГРАБЛЯ**: GOG-версия грузит `opengl32.dll` из **system32**, игнорируя локальный (подтверждено модулями процесса через 32-bit PowerShell). ReShade не загружается вообще — `ReShade.log` не создаётся, ini не переписывается. Это известный кейс на ReShade-форуме: «quake3 always tries to use system32\opengl32.dll».
+- **Фикс: ioq3** (ioquake3.org, 64-bit). Рендерер грузит GL через `SDL264.dll` → `opengl32.dll` из папки приложения → ReShade подхватывается. Схема = OpenMW-паттерн: `opengl32.dll` (ReShade64) + `dlss5-feed.addon64` + `renodx-dlss5.addon64` **4.60** + VORT (`MV_PROVIDER=2`), `LoadFromDllMain=renodx-dlss5.addon64\x00dlss5-feed.addon64\x00` (NUL).
+- **Проверка**: `feature 18 created via the signed snippet after DLSS/DLAA for NR input 3840x2160`, `inline feature 18 evaluation succeeded (count=1 → count=60)`, MV probe 100% non-zero.
+- **4K**: `baseq3/q3config.cfg` — `r_mode "-1"`, `r_customwidth 3840`, `r_customheight 2160`, `r_fullscreen 1`, `cg_fov 105`.
+- **Меню ReShade может пропадать через 5-7 сек** (DirectInput 3 хуки) — известный кейс; фикс `RESHADE_DISABLE_INPUT_HOOK=1` (но тогда клики в оверлее не работают).
+- **«Abnormal Exit» диалог ioq3** при некорректном выходе — «Нет» сохраняет настройки.
+
+## 15. Serious Sam: The First Encounter — 32-bit OpenGL, 4K через конфиг (работает, 03.09)
+- **Схема**: `opengl32.dll` = ReShade x86 (имя файла определяет API) + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 **4.60** + nvngx) + VORT (`MV_PROVIDER=2`). `LoadFromDllMain=dlss5-feed.addon32` РАБОТАЕТ (локальный opengl32, не слой).
+- **4K без модов**: движок перечисляет режимы через `EnumDisplaySettingsA` → `Scripts\PersistentSymbols.ini`: `sam_iScreenSizeI=3840`, `sam_iScreenSizeJ=2160`, `sam_bWideScreen=0`, `plr_fFOV=105`.
+- **«Widescreen» в меню — это letterbox, НЕ растяжение** (GOG-форум: «dont enable the widescreen option at all. just edit the screensize and fov»). Картинка «обрезана сверху/снизу» = включённый Widescreen → `sam_bWideScreen=0`.
+- **DPI**: exe не DPI-aware (AppliedDPI=120 при 125% масштабе) → картинка смещается вниз/вправо. Фикс: `HIGHDPIAWARE` через AppCompatFlags (`fix_ss_dpi.ps1`).
+- **ReShade умирает при смене видеорежима в меню** (`game device destroyed; shutting down` — пересоздание GL-контекста убивает стек). Разрешение выставлять в конфиге ДО запуска, в меню не трогать.
+- **CD-check**: GOG-версия просит диск (`PLEASE INSERT GAME CD?` + `GetDriveTypeA`). MDF→ISO конвертация (8-байт заголовок Alcohol + сектора 2352→2048), монтирование через Mount-DiskImage как DRIVE_CDROM проходит.
+- **Steamify-патч** (archive.org, `ss-tfe-steamifyupdate`) — Steam-бинарники с Hor+ FOV, чинит растяжение/сдвиг.
+
+## 16. Far Cry 2004 — CryEngine 1, D3D9 → DXVK (работает, 03.09)
+- **Схема** = Fallout 3-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 **4.70** + nvngx) + Lumenite (`MV_PROVIDER=3`).
+- **ReShade.ini БЕЗ LoadFromDllMain** (слой-путь, FO3-грабли — аддон не регистрируется через слой).
+- **32-bit лаунчер** `FarCry.exe` (32 КБ, без импортов) — рендереры `XRenderD3D9.dll`/`XRenderOGL.dll` (оба 32-bit), `system.cfg` → D3D9. WidescreenFix (version.dll + .asi) не конфликтует.
+- **4K**: DXVK отдаёт все режимы EnumDisplaySettings — в меню игры выбирается 3840×2160.
+
+## 17. Jedi Knight: Jedi Academy — 32-bit OpenGL, тот же id Tech 3 (работает, 03.09)
+- **Схема** = Serious Sam: `opengl32.dll` (ReShade x86) + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 **4.60** + nvngx) + VORT (`MV_PROVIDER=2`), `LoadFromDllMain=dlss5-feed.addon32`.
+- **В отличие от Quake III**: GOG-версия JA грузит ЛОКАЛЬНЫЙ opengl32.dll (проверено ReShade.log: `loaded from '...\GameData\opengl32.DLL'`) — ioq3/OpenJK не нужен.
+- **Стек в `GameData\`** (рядом с jamp.exe/jasp.exe), не в корне.
+- **4K**: `base\jaconfig.cfg` (SP) + `base\jampconfig.cfg` (MP) — `r_mode "-1"`, `r_customwidth 3840`, `r_customheight 2160`, `cg_fov 105`.
+- **renodx 4.60** (не 4.70) — OpenGL-транспорт, fenced pool (см. п.11).

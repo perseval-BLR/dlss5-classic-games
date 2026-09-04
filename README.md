@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering in 4 classic games
+# DLSS 5 Neural Rendering in 8 classic games
 
-Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in four classic games, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in eight classic games, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Game | Engine / API | Path | Status |
 |---|---|---|---|
@@ -8,18 +8,23 @@ Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in four c
 | The Elder Scrolls III: Morrowind (OpenMW) | OpenMW 0.51, 64-bit OpenGL | ReShade64 as opengl32.dll + Feeder addon64 + VORT motion vectors | ✅ works |
 | Fallout 3 | Gamebryo, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 | ✅ works |
 | Black Mesa | Source 2013, 32-bit D3D9 | DXVK 3.0.2 x86 + global ReShade Vulkan layer + Feeder addon32 | ✅ works |
+| Quake III Arena | ioq3, 64-bit OpenGL | ReShade64 as opengl32.dll + Feeder addon64 + VORT (ioq3 required — GOG binary loads system32 opengl32) | ✅ works |
+| Serious Sam: The First Encounter | Serious Engine 1, 32-bit OpenGL | ReShade x86 as opengl32.dll + Feeder addon32 + host64 + VORT | ✅ works |
+| Far Cry 2004 | CryEngine 1, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 | ✅ works |
+| Star Wars Jedi Knight: Jedi Academy | id Tech 3, 32-bit OpenGL | ReShade x86 as opengl32.dll + Feeder addon32 + host64 + VORT | ✅ works |
 
-All four run DLSS 5 Neural Rendering at native 4K (DLAA contract, no upscaling — the Feeder sees the final frame). Verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR frame counter growing.
+All eight run DLSS 5 Neural Rendering at native 4K (DLAA contract, no upscaling — the Feeder sees the final frame). Verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR frame counter growing.
 
 ## What you need
 
 - RTX 50-series GPU (Neural Rendering is RTX 50-only), driver 616.56+
-- [DLSS5-Feeder](https://github.com/jlrouzies-fr/DLSS5-Feeder) v0.11.0-beta.2 (addon32/addon64 + host64 from the SAME release)
+- [DLSS5-Feeder](https://github.com/jlrouzies-fr/DLSS5-Feeder) v0.11.0-beta.2 / v0.12.0 (addon32/addon64 + host64 from the SAME release)
 - [renodx-dlss5](https://github.com/RankFTW/rhi-repo) 4.70 (4.60 for the OpenGL path — 4.70's fenced workset pool does not recycle on OpenGL)
 - nvngx_dlssnr.dll 310.8.0 + nvngx_dlss.dll / nvngx_dlssg.dll / nvngx_dlssd.dll (310.8.0 / 310.7.129)
 - ReShade 6.8 addon build (x86 dxgi for 32-bit games, x64 dxgi for host64)
-- DXVK 3.0.2 x86 (d3d9.dll) for Fallout 3 / Black Mesa
-- VORT shaders (vortigern11/vort_Shaders) for the OpenMW OpenGL path
+- DXVK 3.0.2 x86 (d3d9.dll) for Fallout 3 / Black Mesa / Far Cry
+- VORT shaders (vortigern11/vort_Shaders) for the OpenGL paths (OpenMW, ioq3, Serious Sam, Jedi Academy)
+- ioq3 binaries (ioquake3.org) for Quake III Arena
 
 ## Install
 
@@ -41,18 +46,25 @@ Per-game variables:
 - `install_openmw.py` — GAME_DIR (OpenMW folder), FEEDER_DIR, RENODX_ADDON (**4.60!**), RESHADE_X64_DXGI, NVNGX_DIR
 - `install_fallout3.py` — GAME_DIR, FEEDER_DIR, RENODX_ADDON, RESHADE_X64_DXGI, NVNGX_DIR, DXVK_D3D9, VULKAN1_X86
 - `install_blackmesa.py` — same as Fallout 3
+- `install_ioq3.py` — GAME_DIR (Quake III folder), IOQ3_SRC (unpacked ioq3 binaries), OPENGL_DONOR (working 64-bit OpenGL install, e.g. OpenMW)
+- `install_serioussam.py` — GAME_DIR (Serious Sam folder, usually `<game>\Bin`), OPENGL_DONOR (OpenMW), X86_DONOR (working 32-bit install, e.g. Deus Ex: HR)
+- `install_farcry.py` — GAME_DIR (Far Cry folder, usually `<game>\Bin32`), DXVK_DONOR (working D3D9 install, e.g. Fallout 3)
+- `install_quake3_ja.py` — GAME_DIR_Q3, GAME_DIR_JA (GameData), X86_DONOR (working 32-bit OpenGL install, e.g. Serious Sam)
 
 ## The gotchas (why this took a while)
 
 1. **DLSS 5 does not fix primitive geometry/textures.** Neural Rendering recomputes lighting on what the engine already renders — flat walls with 2002 textures stay flat. The effect scales with scene richness.
 2. **The Feeder does not understand D3D9.** D3D9 games must be translated first: DXVK (D3D9→Vulkan) — dgVoodoo (D3D9→D3D11) crashes Fallout 3 and Black Mesa (LockVertex/LockIndexBuffer).
 3. **Fallout 3: `LoadFromDllMain` breaks add-on registration through the Vulkan layer.** The add-on loads in the layer's DllMain before the ReShade runtime initializes → "No add-on was registered... Unloading again". Fix: remove LoadFromDllMain, the add-on is picked up by folder scanning after runtime init. (Black Mesa tolerates LoadFromDllMain — different engine load order.)
-4. **OpenMW (OpenGL): renodx-dlss5 4.70 does not work** — fenced workset pool exhausts after 4 frames (`NR workset pool exhausted; preserving game output`). Use 4.60.
+4. **OpenMW (OpenGL): renodx-dlss5 4.70 does not work** — fenced workset pool exhausts after 4 frames (`NR workset pool exhausted; preserving game output`). Use 4.60. Same for all OpenGL paths (ioq3, Serious Sam, Jedi Academy).
 5. **OpenMW: Lumenite gives 0% non-zero motion vectors on OpenGL.** Use VORT (`DLSS5_MV_PROVIDER=2`), technique `vort_MotionEffects` FIRST in the preset, includes into `Shaders/Includes/` (capital I — the preprocessor is case-sensitive).
 6. **OpenMW: diagnostic flags kill NR.** `reset_every=1` / `rebuild=1` / `warmup_rebuild=180` in dlss5-feed.cfg → NR dies after a few frames. Keep them 0.
 7. **Deus Ex: HR is the easy one.** 32-bit Daedalus engine dynamically loads dxgi.dll + d3d11.dll (CreateDXGIFactory) — ReShade-dxgi is picked up with no wrappers at all.
 8. **ReShade overwrites LoadFromDllMain on exit** — patch ini files with the game closed.
 9. **host64/ReShade.ini needs the full [RenoDX.DLSS5] tuning block** (NRStyle=2, EnableHooks=2, NeuralUplift=1, NREnableUpscaling=0 + preset/intensity/tone values) — defaults are weak.
+10. **Quake III (GOG): the game loads opengl32.dll from system32, ignoring the local one.** ReShade never loads (verified via process modules). Fix: use ioq3 — it loads opengl32.dll from its own folder and the whole stack works out of the box.
+11. **Serious Sam: TFE has no 4K in the menu.** The engine enumerates modes via EnumDisplaySettings, so 3840×2160 goes straight into `Scripts\PersistentSymbols.ini` (sam_iScreenSizeI/J). The in-game "Widescreen" option is a letterbox, NOT stretching — keep sam_bWideScreen=0. Steamify patch (archive.org) fixes the Hor+ FOV. DPI: the exe is not DPI-aware — set HIGHDPIAWARE via AppCompatFlags or the image shifts.
+12. **Serious Sam: ReShade dies on video mode change** (`game device destroyed; shutting down` — GL context recreation kills the stack). Don't change resolution in the menu; set it in the config before launch.
 
 ## Verify
 
