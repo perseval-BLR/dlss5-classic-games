@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering in 21 games without native DLSS
+# DLSS 5 Neural Rendering in 25 games without native DLSS
 
-Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in twenty-one games that shipped without DLSS, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in twenty-five games that shipped without DLSS, tested on RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Game | Engine / API | Path | Status |
 |---|---|---|---|
@@ -22,6 +22,10 @@ Working installs of DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) in twenty
 | Need for Speed: Underground | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
 | Need for Speed: Underground 2 | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
 | Need for Speed: Most Wanted (2005) | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
+| Split/Second | Black Rock Studio, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
+| Race Driver: GRID | Codemasters EGO 1.0, 32-bit D3D9 | DXVK 2.7.1 addon_fix x86 (4K-краш-фикс) + dxvk.conf forceRefreshRate + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
+| Need for Speed: Shift | Slightly Mad Studios, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
+| Need for Speed: ProStreet | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + global ReShade Vulkan layer + Feeder addon32 + host64 + Lumenite | ✅ works |
 
 All verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR frame counter growing (`frame N evaluated` in host64\dlss5-feed-host.log).
 
@@ -32,7 +36,8 @@ All verified: `feature 18 created`, `inline feature 18 evaluation succeeded`, NR
 - [renodx-dlss5](https://github.com/RankFTW/rhi-repo) 4.70 (4.60 for the OpenGL path — 4.70's fenced workset pool does not recycle on OpenGL)
 - nvngx_dlssnr.dll 310.8.0 + nvngx_dlss.dll / nvngx_dlssg.dll / nvngx_dlssd.dll (310.9.0 / 310.9.0 / 310.9.0)
 - ReShade 6.8 addon build (x86 dxgi for 32-bit games, x64 dxgi for host64)
-- DXVK 3.0.2 x86 (d3d9.dll) for Fallout 3 / Black Mesa / Far Cry / BloodRayne 2 / Dark Messiah / NFS series
+- DXVK 3.0.2 x86 (d3d9.dll) for Fallout 3 / Black Mesa / Far Cry / BloodRayne 2 / Dark Messiah / NFS series / Split/Second / Shift / ProStreet
+- DXVK 2.7.1 addon_fix (xatornet/GridGogger) for Race Driver: GRID — fixes the 4K crash on high-refresh monitors; pair with dxvk.conf `d3d9.forceRefreshRate = <Hz>`
 - VORT shaders (vortigern11/vort_Shaders) for the OpenGL paths (OpenMW, ioq3, Serious Sam, Jedi Academy, Riddick, DOOM 3 BFG)
 - ioq3 binaries (ioquake3.org) for Quake III Arena
 

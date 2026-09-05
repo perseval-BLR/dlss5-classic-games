@@ -163,3 +163,26 @@
 ## 25. Mass Effect Legendary Edition (ME1/ME2/ME3) — 64-bit D3D11, БЕЗ host64 (работает, 02.09)
 - **Схема**: `dxgi.dll` = ReShade x64 + `dlss5-feed.addon64` + `renodx-dlss5.addon64` 4.70 + Lumenite (`MV_PROVIDER=3`). **host64 НЕ нужен** — 64-bit путь (addon64 сам создаёт D3D12-устройство).
 - **Проверка**: `frame N delivered (3840x2160)` + MV probe 100% non-zero (dlss5-feed.log). Подтверждено 02.09: frame 40200.
+
+## 26. Race Driver: GRID (ZOOM 1.7, EGO 1.0, 32-bit D3D9) — 4K-краш и DXVK 2.7.1 addon_fix (работает, 05.09)
+- **Краш 0xC0000005 на 4K-мониторе с высокой частотой (XG32UCG 3840x2160@143)**: GRID 2008 падает при детекте разрешения/частоты через драйвер NVIDIA. В дампе: `mov eax,[ebp+0x34]` при EBP=0 (вызов метода на NULL), стек содержит `nvldumd.dll` + путь `DriverStore\FileRepository\nv_dispi.inf_amd64_...`. Краш СТАБИЛЕН: без DXVK, с GridMTFix, с affinity 4 ядра, с WIN7RTM, с OpenAL Soft — всё равно.
+- **Фикс: DXVK 2.7.1 addon_fix от xatornet** (`https://github.com/xatornet/GridGogger/releases/download/v0.3.1/DXVK_v2.7.1_x86_addon_fix.zip`) — d3d9.dll + dxvk.conf с `d3d9.forceRefreshRate = 144` (под свою частоту). НЕ обычный DXVK 3.0.2 — именно эта сборка чинит 4K-краш.
+- **НЕ ставить GridMTFix на ZOOM 1.7**: у ZOOM уже свои фиксы 12+ ядер и 4GB (changelog 1.6/1.7), GridMTFix-версии system/*.xml рассчитаны на GOG/Steam и ломают. Оригиналы извлекаются из репака innoextract'ом (`innoextract -s -d out Setup.exe`).
+- **Схема**: `d3d9.dll` (DXVK 2.7.1 addon_fix) + глобальный ReShade32 Vulkan-слой + `dlss5-feed.addon32` + `host64\` (renodx-dlss5 4.70, NRStyle=0) + Lumenite (`DLSS5_MV_PROVIDER=3`). Работает: `feature ready: 3840x2160 DLAA flags=74`, `frame N evaluated`.
+- **Диагностика краша**: WER LocalDumps (`HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\GRID.exe`, DumpType=2) + python minidump: ExceptionAddress, WOW64_CONTEXT (EIP/EBP), стек по ESP. Код краша в .text самой игры = не DLL-конфликт.
+- **Лаунчер GRIDLauncher.exe** (PyInstaller): запускает `start /wait GRID.exe -logging`, читает реестр `HKLM\SOFTWARE\Wow6432Node\Codemasters\GRID`, пишет LaunchGRID.bat. Для запуска не обязателен.
+
+## 27. Split/Second (Black Rock Studio, 32-bit D3D9) — DXVK-путь (работает, 05.09)
+- **Схема** = NFS-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite (`MV_PROVIDER=3`). ReShade.ini БЕЗ LoadFromDllMain (слой-путь).
+- **Проверка**: `frame N evaluated` (host64 log, DLSS GPU ~16.7 ms/frame). Подтверждено 05.09: frame 14400.
+- **Steam 297860**, Disney Interactive. D3D9.0c, 32-bit, без нативного DLSS.
+
+## 28. Need for Speed: Shift (Slightly Mad Studios, 32-bit D3D9) — DXVK-путь (работает, 05.09)
+- **Схема** = NFS-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite (`MV_PROVIDER=3`). ReShade.ini БЕЗ LoadFromDllMain (слой-путь).
+- **Проверка**: `frame N evaluated` (host64 log). Подтверждено 05.09: frame 23400.
+- **Steam 24870**, Electronic Arts. D3D9.0c, 32-bit, без нативного DLSS.
+
+## 29. Need for Speed: ProStreet (Black Box, 32-bit D3D9) — DXVK-путь (работает, 05.09)
+- **Схема** = NFS-паттерн: `D3D9.dll` = DXVK 3.0.2 x86 + глобальный Vulkan-слой ReShade + `dlss5-feed.addon32` + `host64\` (renodx 4.70) + Lumenite (`MV_PROVIDER=3`). ReShade.ini БЕЗ LoadFromDllMain (слой-путь).
+- **Проверка**: `frame N evaluated` (host64 log). Подтверждено 05.09: frame 45000.
+- **Delisted** (Steam 404), Electronic Arts. D3D9.0c, 32-bit, без нативного DLSS.

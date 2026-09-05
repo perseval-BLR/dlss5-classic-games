@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering в 21 игре без нативного DLSS
+# DLSS 5 Neural Rendering в 25 играх без нативного DLSS
 
-Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в двадцати одной игре, которые вышли без DLSS, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в двадцати пяти играх, которые вышли без DLSS, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Игра | Движок / API | Схема | Статус |
 |---|---|---|---|
@@ -22,6 +22,10 @@
 | Need for Speed: Underground | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
 | Need for Speed: Underground 2 | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
 | Need for Speed: Most Wanted (2005) | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| Split/Second | Black Rock Studio, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| Race Driver: GRID | Codemasters EGO 1.0, 32-bit D3D9 | DXVK 2.7.1 addon_fix x86 (фикс 4K-краша) + dxvk.conf forceRefreshRate + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| Need for Speed: Shift | Slightly Mad Studios, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
+| Need for Speed: ProStreet | EA Black Box, 32-bit D3D9 | DXVK 3.0.2 x86 (D3D9→Vulkan) + глобальный Vulkan-слой ReShade + Feeder addon32 + host64 + Lumenite | ✅ работает |
 
 Все подтверждены: `feature 18 created`, `inline feature 18 evaluation succeeded`, счётчик NR-кадров растёт (`frame N evaluated` в host64\dlss5-feed-host.log).
 
