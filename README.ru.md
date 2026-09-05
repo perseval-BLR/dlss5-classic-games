@@ -1,6 +1,6 @@
-# DLSS 5 Neural Rendering в 25 играх без нативного DLSS
+# DLSS 5 Neural Rendering в 22 играх без нативного DLSS
 
-Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в двадцати пяти играх, которые вышли без DLSS, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
+Рабочие установки DLSS 5 Neural Rendering (nvngx_dlssnr.dll 310.8.0) в двадцати двух играх, которые вышли без DLSS, проверено на RTX 5070 Ti (16 GB) + Ryzen 7 9800X3D, 4K:
 
 | Игра | Движок / API | Схема | Статус |
 |---|---|---|---|
