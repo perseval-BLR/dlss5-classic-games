@@ -103,6 +103,7 @@ Per-game variables:
 - [dlss5-bridge](https://github.com/NIGos/dlss5-bridge) — DLSS 5 in DX11/Vulkan games with native DLSS; our R32_SFLOAT depth fix for RTX Remix games is merged upstream (PR #21)
 - [DLSS5-Video-Converter](https://github.com/perseval-BLR/DLSS5-Video-Converter) — run DLSS 5 NR on videos
 - [NR-Media-UI](https://github.com/perseval-BLR/NR-Media-UI) — run DLSS 5 NR on screenshots
+- [DLSS5-NeuralScreen] (https://github.com/perseval-BLR/DLSS5-NeuralScreen) - DLSS5 Overlay FULL desktop!
 
 ## Author
 
